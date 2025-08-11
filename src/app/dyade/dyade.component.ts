@@ -11,9 +11,9 @@ import { rxState } from '@rx-angular/state';
 import {coerceToAtLeastOne} from '../helpers';
 
 type State = {
-  state: 'initial' | 'isPlaying' | 'isPausing'
-  
+  playingState: 'initial' | 'isPlaying' | 'isPausing'
 }
+const INITIAL_STATE: State = 'initial';
 
 @Component({
   selector: 'app-dyade',
@@ -52,9 +52,9 @@ export class DyadeComponent {
 
   protected valueControl = new FormControl(1);
 
-  private state = rxState<{ movies: Movie[] }>(({ set, connect }) => {
+  private state = rxState<{ state: State }>(({ set, connect }) => {
     // set initial state
-    set({ movies: [] });
+    set(INITIAL_STATE);
     // connect data source to state
     connect('movies', this.movieResource.fetchMovies());
   });
