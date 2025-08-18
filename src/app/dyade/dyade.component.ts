@@ -6,14 +6,7 @@ import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {MatIconModule} from '@angular/material/icon'; 
 import {MatButtonModule} from '@angular/material/button';
 
-import { rxState } from '@rx-angular/state';
-
 import {coerceToAtLeastOne} from '../helpers';
-
-type State = {
-  playingState: 'initial' | 'isPlaying' | 'isPausing'
-}
-const INITIAL_STATE: State = 'initial';
 
 @Component({
   selector: 'app-dyade',
@@ -36,7 +29,7 @@ const INITIAL_STATE: State = 'initial';
 
     <ng-container>
       <button mat-fab>
-          <mat-icon>{{ isPlaying ? 'play_arrow' : 'pause' }}</mat-icon>
+          <mat-icon>{{ true ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
       <button mat-fab>
           <mat-icon>stop</mat-icon>
@@ -51,13 +44,6 @@ export class DyadeComponent {
 
 
   protected valueControl = new FormControl(1);
-
-  private state = rxState<{ state: State }>(({ set, connect }) => {
-    // set initial state
-    set(INITIAL_STATE);
-    // connect data source to state
-    connect('movies', this.movieResource.fetchMovies());
-  });
 
   constructor() {
     // No additional logic needed; FormControl handles synchronization

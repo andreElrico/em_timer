@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { TimerStore } from '../+timer.state';
 
 @Component({
   selector: 'app-em',
   imports: [],
-  template: `
-    <p>
-      em works!
-    </p>
-  `,
-  styles: ``
+  template: ` <p>playingState()</p> `,
+  styles: ``,
 })
 export class EmComponent {
+  private readonly store = inject(TimerStore);
 
+  protected readonly playingState = this.store.playingState
 }
