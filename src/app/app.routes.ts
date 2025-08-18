@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import { EmComponent } from './em/em.component';
-import { DyadeComponent } from './dyade/dyade.component';
+
+
 
 export const routes: Routes = [
-    { path: 'em', component: EmComponent, pathMatch: 'full'},
-    { path: 'dyade', component: DyadeComponent, pathMatch: 'full' },
+    { path: 'em', loadComponent: () => import('./em/em.component').then(m => m.EmComponent), pathMatch: 'full'},
+    { path: 'dyade', loadComponent: () => import('./dyade/dyade.component').then(m => m.DyadeComponent), pathMatch: 'full' },
     { path: '', redirectTo: 'em', pathMatch: 'prefix' }
 ];
