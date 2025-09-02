@@ -1,13 +1,34 @@
 /* You can add global styles to this file, and also import other style files */
+@use "tailwindcss";
 
 html {
   box-sizing: border-box;
 }
-*, *:before, *:after {
+*,
+*:before,
+*:after {
   box-sizing: inherit;
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
+.responsive-wrapper {
+  /* Default styles for all screens (mobile-first approach) */
+  width: 100%;
+}
 
+@media (min-width: 768px) {
+  /* Styles for viewports 768px and wider (e.g., tablets and desktops) */
+  .responsive-wrapper {
+    max-width: 768px; /* Sets the max width */
+    margin-left: auto;
+    margin-right: auto; /* Centers the div on the screen */
+  }
+}
