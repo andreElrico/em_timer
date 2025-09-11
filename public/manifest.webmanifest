@@ -1,6 +1,6 @@
 {
   "name": "em_timer",
-  "short_name": "em_timer",
+  "short_name": "timer",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",

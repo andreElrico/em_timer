@@ -9,6 +9,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { coerceToAtLeastOne } from '../helpers';
 import { ProgressTimerComponent } from '../progress-timer/progress-timer.component';
+import { AudioServiceService } from '../audio-service.service';
 
 const DEFAULT_TIMER_IN_MINUTES = 1;
 
@@ -77,6 +78,7 @@ let HAS_NOT_RUN = true;
 })
 export class EmComponent {
   protected readonly store = inject(TimerStore);
+  protected readonly audio = inject(AudioServiceService);
 
   protected valueControl = new FormControl<number>(DEFAULT_TIMER_IN_MINUTES);
 
