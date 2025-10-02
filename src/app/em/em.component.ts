@@ -1,20 +1,17 @@
-import { Component, effect, inject } from '@angular/core';
-import { TimerStore } from '../+timer.state';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { EM_UI_Store } from '../+em-ui.state';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Control, disabled, form, property } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { coerceToAtLeastOne } from '../helpers';
 import { ProgressTimerComponent } from '../progress-timer/progress-timer.component';
-import { AudioServiceService } from '../audio-service.service';
-
-const DEFAULT_TIMER_IN_MINUTES = 1;
-
-// TODO: antipattern make better
-let HAS_NOT_RUN = true;
+import { AudioServiceService } from '../audio.service';
+import { coerceToAtLeastOne } from '../helpers';
+import { getState } from '@ngrx/signals';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-em',
@@ -26,39 +23,35 @@ let HAS_NOT_RUN = true;
     MatButtonModule,
     MatIconModule,
     ProgressTimerComponent,
+    Control,
   ],
   template: `
     <div class="responsive-wrapper">
       <mat-slider class="!w-full m-0" min="1" max="10" step="1" showTickMarks>
-        <input
-          [value]="valueControl.value"
-          matSliderThumb
-          [formControl]="valueControl"
-        />
+        <input matSliderThumb [control]="this.minutesForm.minutes" />
       </mat-slider>
 
       <mat-form-field class="w-full">
         <mat-label>Minutes</mat-label>
         <input
           min="1"
-          [value]="valueControl.value"
           matInput
           type="number"
-          [formControl]="valueControl"
+          [control]="this.minutesForm.minutes"
           (blur)="onInputBlur()"
         />
       </mat-form-field>
 
       <span class="mr-1">
         @if ( store.showPlayButton() ) {
-        <button mat-fab (click)="store.onPlay()">
+        <button mat-fab (click)="store.onPlay(castedSeconds())">
           <mat-icon> play_arrow </mat-icon>
         </button>
-        } @else {
+        } @else { @if (store.showPauseButton() ) {
         <button mat-fab (click)="store.onPause()">
           <mat-icon class="warn"> pause </mat-icon>
         </button>
-        }
+        } }
       </span>
       @if ( store.showStopButton() ) {
       <button class="danger" mat-fab (click)="store.onStop()">
@@ -66,10 +59,12 @@ let HAS_NOT_RUN = true;
       </button>
       } @if ( store. showTimer() ) {
       <app-progress-timer
-        [currentSecondLeft]="store.countInSeconds()"
-        [totalSeconds]="(valueControl.value ?? 0) * 60"
-        [isBlinking]="store.playingState() === 'isPausing'"
+        [currentSecondLeft]="store.timer().secondsLeft"
+        [totalSeconds]="store.timer().totalSeconds"
+        [isBlinking]="store.blinkTimer()"
       ></app-progress-timer>
+      } @if ( store.showFinished() ) {
+      <p class="mt-8 text-4xl">Times up !!!</p>
       }
     </div>
   `,
@@ -77,44 +72,31 @@ let HAS_NOT_RUN = true;
   `,
 })
 export class EmComponent {
-  protected readonly store = inject(TimerStore);
+  protected readonly store = inject(EM_UI_Store);
   protected readonly audio = inject(AudioServiceService);
 
-  protected valueControl = new FormControl<number>(DEFAULT_TIMER_IN_MINUTES);
+  protected readonly minutes = signal({ minutes: 1 });
 
-  constructor() {
-    this.valueControl.valueChanges
-      .pipe(takeUntilDestroyed())
-      .subscribe((value) => {
-        const castValue = coerceToAtLeastOne(value) * 60;
-        if (castValue !== this.store.countInSeconds()) {
-          this.store.onTimerFormValueChange(castValue);
-        }
-      });
+  protected readonly minutesForm = form(this.minutes, (path) => {
+    disabled(path.minutes, () => this.store.disableControls());
+  });
 
-    // set initial value to store, skip if countInSeconds is different from 1;
-    if (HAS_NOT_RUN) {
-      this.valueControl.updateValueAndValidity();
-      HAS_NOT_RUN = false;
-    }
+  protected readonly castedSeconds = computed(
+    () => this.minutes().minutes * 60
+  );
 
-    // change once signal forms are a thing
-    effect(() => {
-      if (this.store.disableControls()) {
-        this.valueControl.disable({ emitEvent: false });
-      } else {
-        this.valueControl.enable({ emitEvent: false });
-      }
-    });
+  getState() {
+    return getState(this.store);
   }
 
   onInputBlur() {
-    const value = this.valueControl.value;
+    const minutesValue = this.minutesForm().value().minutes;
 
-    const castValue = coerceToAtLeastOne(value);
+    const castValue = coerceToAtLeastOne(minutesValue);
 
-    if (value !== castValue) {
-      this.valueControl.setValue(castValue);
+    if (minutesValue !== castValue) {
+      const value = this.minutesForm().value();
+      this.minutesForm().value.set({ ...value, minutes: castValue });
     }
   }
 }
